@@ -79,11 +79,11 @@ def format_arff_file(arquivo_arff, batch_id, qtd_img):
                     "%\n"
                     "% 2. Sources\n"
                     "%      Cifar-10 Database\n"
-                    "%\n%"
+                    "%\n"
                     "@relation imagens\n\n")
     for num in range(0, 1024):
         file.writelines("@attribute 'valueof"+ str(num) +"' real\n")
-    file.writelines("@attribute 'class' {Animal, Nao_Animal}\n\n")
+    file.writelines("@attribute 'class' {Animal, Nao_Animal}\n\n@data\n")
 
     # converte todas as imagens existentes na pasta IMAGES
     for num in range(0, qtd_img):
@@ -101,8 +101,8 @@ def format_arff_file(arquivo_arff, batch_id, qtd_img):
 if __name__ == '__main__':
     COUNT_IMG = 256
     #save_images(batch_id=1, id_inicial=0, id_final=COUNT_IMG)
-    #delete_images(batch_id=1, id_inicial=0, id_final=COUNT_IMG)
-    format_arff_file(arquivo_arff="entrada.arff", batch_id=1, qtd_img=COUNT_IMG)
+    delete_images(batch_id=1, id_inicial=0, id_final=COUNT_IMG)
+    #format_arff_file(arquivo_arff="entrada.arff", batch_id=1, qtd_img=COUNT_IMG)
 
 
 '''
