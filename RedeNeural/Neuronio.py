@@ -8,33 +8,42 @@ class Neuronio():
     soma = 0            # valor do cálculo das somas com os pesos
 
     # construtor
-    def __init__(self, numInputs, learningRate, threshold): # construtor para função limiar
+    def __init__(self, numInputs, arrayPesos, learningRate, threshold): # construtor para função limiar
         self.numInputs = numInputs
+        self.arrayPesos = arrayPesos
         self.learningRate = learningRate
         self.threshold = threshold
 
-    # recebe um array com os pesos desejados
-    def atribuir_pesos(self, pesos):
-        for i in range(0, self.threshold):
-            self.arrayPesos.append(pesos[i])
-
     # calcula o valor da soma ponderada com a função sigmoid
-    def function_sigmoid(self):
+    def function_sigmoid(self, arrayInput):
         self.soma = 0
         for i in range(0, self.numInputs):
-            self.soma += self.arrayPesos[i]
-        return 1 / (1 + exp(-self.soma))
+            self.soma += self.arrayPesos[i]*arrayInput[i]
+        return 1 / (1 + exp(-self.soma))    # 1/(1+e^-x)
 
     # recebe o valor da soma ponderada e retorna o valor da limiar
-    def function_limiar(self):
+    def function_limiar(self, arrayInput):
         self.soma = 0
         for i in range(0, self.numInputs):
-            self.soma += self.arrayPesos[i]
+            self.soma += self.arrayPesos[i]*arrayInput[i]
         if self.soma >= self.threshold: return 1
         else: return 0
 
+    # função que modifica os pesos (aprendizado)
+    def ajustar_pesos(self, saidaDesejada, saidaResultado):
+        erro = saidaDesejada - saidaResultado
+        if erro != 0:
+            print(1)
 
+
+    # printa todas as configurações do neuronio
+    def exibir_neuronio(self):
+        print("\nNum Entradas = "+str(self.numInputs)+
+              "\nTx Aprendizado = "+str(self.learningRate)+
+              "\nThreshold = "+str(self.threshold))
+        for i in range(0, self.numInputs):
+            print("Peso "+str(i)+" = "+str(self.arrayPesos[i]))
 
 if __name__ == '__main__':
-    Neuronio(2, 1, 1)
-
+    n = Neuronio(numInputs=2, arrayPesos=[1,1], learningRate=1, threshold=1)
+    n.exibir_neuronio()

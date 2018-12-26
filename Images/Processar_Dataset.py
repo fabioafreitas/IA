@@ -12,7 +12,7 @@ ALTER_LABEL = ['Animal', 'Nao_Animal']
 #lê as imagens e seus labels de um determinado batch
 def load_batch(batch_id):
     # carrega o conteúdo do arquivo na variável batch
-    with open('D:/UFRPE/IA/IA/Datasets/data_batch_' + str(batch_id), mode='rb') as file:
+    with open('D:/UFRPE/Projeto_IA/Projeto_IA/Datasets/data_batch_' + str(batch_id), mode='rb') as file:
         batch = pickle.load(file, encoding='latin1')
     # carrega as imagens em si no array features
     features = batch['data'].reshape((len(batch['data']), 3, 32, 32)).transpose(0, 2, 3, 1)
