@@ -26,24 +26,23 @@ class Neuronio():
         self.soma = 0
         for i in range(0, self.numInputs):
             self.soma += self.arrayPesos[i]*arrayInput[i]
-        if self.soma >= self.threshold: return 1
-        else: return 0
+        if self.soma >= self.threshold:
+            return 1
+        else:
+            return 0
 
     # função que modifica os pesos (aprendizado)
-    def ajustar_pesos(self, saidaDesejada, saidaResultado):
+    # recebe a saída desejadam, a saída calculada sobre o exemplo atual e o exemplo atual
+    def ajustar_pesos(self, saidaDesejada, saidaResultado, arrayInputAtual):
         erro = saidaDesejada - saidaResultado
-        if erro != 0:
-            print(1)
+        for i in range(0, self.numInputs):
+            self.arrayPesos[i] += self.threshold * erro * arrayInputAtual[i]
 
 
     # printa todas as configurações do neuronio
     def exibir_neuronio(self):
-        print("\nNum Entradas = "+str(self.numInputs)+
-              "\nTx Aprendizado = "+str(self.learningRate)+
-              "\nThreshold = "+str(self.threshold))
+        print("\nNumero de Entradas = "+str(self.numInputs)+
+              "\tTaxa Aprendizado = "+str(self.learningRate)+
+              "\tThreshold = "+str(self.threshold))
         for i in range(0, self.numInputs):
             print("Peso "+str(i)+" = "+str(self.arrayPesos[i]))
-
-if __name__ == '__main__':
-    n = Neuronio(numInputs=2, arrayPesos=[1,1], learningRate=1, threshold=1)
-    n.exibir_neuronio()
