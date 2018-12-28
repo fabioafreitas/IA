@@ -21,7 +21,7 @@ class Neuronio():
             self.soma += self.arrayPesos[i]*arrayInput[i]
         return 1 / (1 + exp(-self.soma))    # 1/(1+e^-x)
 
-    # recebe o valor da soma ponderada e retorna o valor da limiar
+    # recebe uma imagem em forma de array
     def function_limiar(self, arrayInput):
         self.soma = 0
         for i in range(0, self.numInputs):
@@ -32,11 +32,11 @@ class Neuronio():
             return 0
 
     # função que modifica os pesos (aprendizado)
-    # recebe a saída desejadam, a saída calculada sobre o exemplo atual e o exemplo atual
-    def ajustar_pesos(self, saidaDesejada, saidaResultado, arrayInputAtual):
-        erro = saidaDesejada - saidaResultado
+    # recebe a saída desejadam, a saída calculada sobre a imagem atual e a imagem atual
+    def ajustar_pesos(self, saidaDesejada, saidaResultante, arrayInputAtual):
+        erro = saidaDesejada - saidaResultante
         for i in range(0, self.numInputs):
-            self.arrayPesos[i] += self.threshold * erro * arrayInputAtual[i]
+            self.arrayPesos[i] += self.learningRate * erro * arrayInputAtual[i]
 
 
     # printa todas as configurações do neuronio
