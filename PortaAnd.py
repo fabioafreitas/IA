@@ -1,5 +1,4 @@
 from random import Random
-
 from RedeNeural.Neuronio import Neuronio
 
 dataset = [[0,0],[0,1],[1,0],[1,1]]
@@ -26,7 +25,7 @@ while loop: # testa o neuronio N vezes até que ele esteja apto para retornar as
             neuronio.ajustar_pesos(labels[i], outputAtual, dataset[i])# ajusta os pesos de todos os inputs do neuronio
             break
         else:
-          #  print("---------------acerto---------------",end="")
+            #print("---------------acerto---------------",end="")
             #neuronio.exibir_neuronio()
             acerto += 1
         if acerto == 4:
