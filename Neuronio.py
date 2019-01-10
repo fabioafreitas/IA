@@ -19,7 +19,11 @@ class Neuronio():
         self.soma = 0
         for i in range(0, self.numInputs):
             self.soma += self.arrayPesos[i]*arrayInput[i]
-        return 1 / (1 + exp(-self.soma))    # 1/(1+e^-x)
+        sigmoid = 1 / (1 + exp(-self.soma)) # 1/(1+e^-x)
+        previsao = 0
+        if sigmoid >= 0.5:
+            previsao = 1
+        return previsao, sigmoid
 
     # recebe uma imagem em forma de array
     def function_limiar(self, arrayInput):
