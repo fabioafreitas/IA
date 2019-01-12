@@ -4,40 +4,44 @@ from PIL import ImageTk, Image
 from Neuronio import Neuronio
 from random import Random
 
-
 # Classes originais do CIFAR-10
 LABEL_NAMES = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
 # Classes do projeto
 ALTER_LABEL = ['Animal', 'Nao_Animal']
 
+
 # normaliza o array da imagem, que possui valores de 0 a 255, em valores de 0 a 1.
 def normalizar(array):
     aux = []
     for i in array:
-        aux.append(i/255)
+        aux.append(i / 255)
     return aux
 
+
 # Treina uma rede neural perceptron com a função sigmoid.
-# Recebe: O batch a ser treinado;
-#         A quantidade de subdivisões na base de dados para o treinamento cruzado;
-#         A quantidade de repetições que o treino realizará;
+# Recebe: O batch a ser utilizado;
+#         A quantidade de folds da validação cruzada;
+#         A quantidade de repetições do treiamento
 #         A instancia do neuronio a ser treinado.
-def treinar(batch_id, subdivisoes, repeticoes, neuronio):
-    # testa todas as 10000 imagens de uma determinado batch
-    imagens, labels = dataset.format_batch_train(batch_id, 0, 10000)
+def treinar(batch_id, numFolds, repeticoes, neuronio):
+    imagens = labels = []
+    if neuronio.numInputs == 1024:
+        imagens, labels = dataset.format_batch_train_grayscale(batch_id, 0, 10000)
+    else:
+        imagens, labels = dataset.format_batch_train_rgb(batch_id, 0, 10000)
 
     for i in range(0, 10000):
-       imagens[i] = normalizar(imagens[i])
+        imagens[i] = normalizar(imagens[i])
 
     # contador que auxilia nas subdivisões de treino e teste
-    contador = len(imagens)/subdivisoes
+    contador = len(imagens) / numFolds
 
     # repetindo o treinamento várias vezes
     for rep in range(0, int(repeticoes)):
-        print("Repeticão "+str(rep+1))
+        print("Repeticão " + str(rep + 1))
         # treinamento cruzado, com 10 subdivisões
-        for num in range(0, int(subdivisoes)):
+        for num in range(0, int(numFolds)):
             # separação dos intervalos de treino e teste. I = início, F = final
             testeI = num * contador
             testeF = testeI + contador
@@ -94,16 +98,23 @@ def treinar(batch_id, subdivisoes, repeticoes, neuronio):
 # Testa um exemplo num neurônio
 # recebe o batch, o número da imagem e a instancia do neuronio a ser testado
 def testar(batch_id, numero_imagem, neuronio):
-    if 0 <= numero_imagem < 10000 and 1 <= batch_id < 6:
+    if 0 <= numero_imagem <= 10000 and 1 <= batch_id < 6:
         features, label_original = dataset.load_batch(batch_id)
-        imagem, labels = dataset.format_batch_train(batch_id, numero_imagem, numero_imagem+1)
-        dataset.save_images(batch_id, numero_imagem, numero_imagem+1)
+        imagens = labels = []
+        if neuronio.numInputs == 1024:
+            imagem, labels = dataset.format_batch_train_grayscale(batch_id, numero_imagem, numero_imagem + 1)
+        else:
+            imagem, labels = dataset.format_batch_train_rgb(batch_id, numero_imagem, numero_imagem + 1)
+        dataset.save_images(batch_id, numero_imagem, numero_imagem + 1)
         previsao, sigmoid = neuronio.function_sigmoid(imagem[0])
         resposta = labels[numero_imagem]
 
         # Interface gráfica que exibe a imagem
         window = tk.Tk()
-        window.title("Teste perceptron")
+        if neuronio.numInputs == 1024:
+            window.title("Teste GrayScale")
+        else:
+            window.title("Teste RGB")
         window.geometry("300x350")
         window.configure(background='white')
 
@@ -115,9 +126,9 @@ def testar(batch_id, numero_imagem, neuronio):
 
         # The Label widget is a standard Tkinter widget used to display a text or image on the screen.
         panel = tk.Label(window, image=img)
-        labelClasse = tk.Label(text="Imagem: "+LABEL_NAMES[label_original[numero_imagem]], fg="black", bg="white")
-        labelPrevisao = tk.Label(text="Previsão: "+ALTER_LABEL[previsao], fg="black", bg="white")
-        labelResposta = tk.Label(text="Resposta: "+ALTER_LABEL[resposta], fg="black", bg="white")
+        labelClasse = tk.Label(text="Imagem: " + LABEL_NAMES[label_original[numero_imagem]], fg="black", bg="white")
+        labelPrevisao = tk.Label(text="Previsão: " + ALTER_LABEL[previsao], fg="black", bg="white")
+        labelResposta = tk.Label(text="Resposta: " + ALTER_LABEL[resposta], fg="black", bg="white")
         fontSize = 17
         labelClasse.config(font=("Courier", fontSize))
         labelPrevisao.config(font=("Courier", fontSize))
@@ -146,6 +157,11 @@ def preencherPesos(numInputs):
 
 # main
 if __name__ == '__main__':
-    perceptron = Neuronio(1024, preencherPesos(1024), learningRate=0.01, threshold=0)
-    treinar(batch_id=1, subdivisoes=10, repeticoes=1, neuronio=perceptron)
+    perceptronGray = Neuronio(1024, preencherPesos(1024), learningRate=0.01, threshold=0)
+    perceptronRGB = Neuronio(3072, preencherPesos(3072), learningRate=0.01, threshold=0)
+
+    #treinar(batch_id=1, numFolds=10, repeticoes=1, neuronio=perceptronGray)
+    #treinar(batch_id=1, numFolds=10, repeticoes=1, neuronio=perceptronRGB)
+
     #testar(batch_id=1, numero_imagem=5, neuronio=perceptron)
+    #testar(batch_id=1, numero_imagem=5, neuronio=perceptronRGB)

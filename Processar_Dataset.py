@@ -87,7 +87,7 @@ def alterar_labels(labels):
 # formata o arquivo .arff para ser testado no WEKA
 # salva e converte as imagens para grayscale, em seguida as deleta
 # recebe o nome do arquivo a ser formatado, o batch a ser formatado e o número de imagens (de 1 a 10000)
-def format_arff_file(arquivo_arff, batch_id, numero_imagens):
+def format_arff_file_grayscale(arquivo_arff, batch_id, numero_imagens):
     if 0 <= numero_imagens <= 10000 and 1 <= batch_id < 6:
         features, labels = load_batch(batch_id)
 
@@ -123,11 +123,46 @@ def format_arff_file(arquivo_arff, batch_id, numero_imagens):
         del features, labels, alter_label
 
 
-# formata um batch (de 1 a 5) para ser treinado pela rede neural
+# formata o arquivo .arff para ser testado no WEKA
+# salva e converte as imagens para grayscale, em seguida as deleta
+# recebe o nome do arquivo a ser formatado, o batch a ser formatado e o número de imagens (de 1 a 10000)
+def format_arff_file_rgb(arquivo_arff, batch_id, numero_imagens):
+    if 0 <= numero_imagens <= 10000 and 1 <= batch_id < 6:
+        features, labels = load_batch(batch_id)
+
+        alter_label = alterar_labels(labels)
+        file = open(arquivo_arff, "w")
+
+        # escrevendo comantários e itens iniciais do arquivo .arff
+        file.writelines("% 1. Title: Database de objetos\n"
+                        "%\n"
+                        "% 2. Sources\n"
+                        "%      Cifar-10 Database\n"
+                        "%\n"
+                        "@relation imagens\n\n")
+
+        # escrevendo os atributos referentes ao vetor de características
+        for num in range(0, 3072):
+            file.writelines("@attribute 'valueof" + str(num) + "' real\n")
+        file.writelines("@attribute 'class' {Animal, Nao_Animal}\n\n@data\n")
+
+        # formata os pixels de cada imagem para ser escrito no arquivo
+        for num in range(0, numero_imagens):
+            for b in range(0, 32):
+                for c in range(0, 32):
+                    for d in range(0, 3):
+                        file.writelines(str(features[num][b][c][d]) + ",")
+            file.writelines(str(ALTER_LABEL[alter_label[num]]) + "\n")
+
+        file.close()
+        del features, labels, alter_label
+
+
+# formata um batch (1 a 5) para ser treinado pela rede neural
 # salva e converte as imagens para grayscale, em seguida as deleta
 # deixa o vetor de caracteristicas de saída no formato unidimensional
 # recebe o batch a ser formatado e o intervalo de imagens a ser formatadas (valor entre 1 e 10000)
-def format_batch_train(batch_id, indexInicio, indexFim):
+def format_batch_train_grayscale(batch_id, indexInicio, indexFim):
     if 0 <= indexInicio < indexFim <= 10000 and 1 <= batch_id < 6:
         save_images(batch_id, indexInicio, indexFim)
         features, labels = load_batch(batch_id)
@@ -152,10 +187,29 @@ def format_batch_train(batch_id, indexInicio, indexFim):
         return array_features, array_labels
 
 
+# formata um batch (1 a 5) para ser treinado pela rede neural
+# utiliza as imagens em rgb direto da base de dados. Não precisa converter para .png
+# deixa o vetor de caracteristicas de saída no formato unidimensional
+# recebe o batch a ser formatado e o intervalo de imagens a ser formatadas (valor entre 1 e 10000)
+def format_batch_train_rgb(batch_id, indexInicio, indexFim):
+    if 0 <= indexInicio < indexFim <= 10000 and 1 <= batch_id < 6:
+        features, labels = load_batch(batch_id)
+        array_labels = alterar_labels(labels)
+        array_features = []
+        for a in range(int(indexInicio), int(indexFim)):
+            array = []
+            for b in range(0, 32):
+                for c in range(0, 32):
+                    for d in range(0, 3):
+                        array.append(features[a][b][c][d])
+            array_features.append(array)
+
+        del features, labels
+        return array_features, array_labels
+
 if __name__ == '__main__':
-    COUNT_IMG = 1
-    save_images(1, 0, COUNT_IMG)
-    #delete_images(1, 0, COUNT_IMG)
-    #format_arff_file(arquivo_arff="entradaGrayscale.arff", batch_id=1, numero_imagens=COUNT_IMG)
-    #f, l = format_batch_train(1, 9, COUNT_IMG)
-    #l, f = load_batch(1)
+    COUNT_IMG = 256
+    for i in range(1, 6):
+        format_arff_file_rgb(arquivo_arff="rgb-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
+        format_arff_file_grayscale(arquivo_arff="gray-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
+
