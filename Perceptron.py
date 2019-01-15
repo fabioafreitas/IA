@@ -28,15 +28,17 @@ def treinar(batch_id, numFolds, repeticoes, neuronio):
     imagens = labels = []
     if neuronio.numInputs == 1024:
         imagens, labels = dataset.format_batch_train_grayscale(batch_id, 0, 10000)
-    else:
+    elif neuronio.numInputs == 3072:
         imagens, labels = dataset.format_batch_train_rgb(batch_id, 0, 10000)
+    else:
+        imagens, labels = dataset.format_batch_train_histogram(batch_id, 0, 10000)
 
     for i in range(0, 10000):
         imagens[i] = normalizar(imagens[i])
 
     # contador que auxilia nas subdivisões de treino e teste
     contador = len(imagens) / numFolds
-
+    print("Batch "+str(batch_id))
     # repetindo o treinamento várias vezes
     for rep in range(0, int(repeticoes)):
         print("Repeticão " + str(rep + 1))
@@ -103,19 +105,18 @@ def testar(batch_id, numero_imagem, neuronio):
         imagens = labels = []
         if neuronio.numInputs == 1024:
             imagem, labels = dataset.format_batch_train_grayscale(batch_id, numero_imagem, numero_imagem + 1)
-        else:
+        elif neuronio.numInputs == 3072:
             imagem, labels = dataset.format_batch_train_rgb(batch_id, numero_imagem, numero_imagem + 1)
+        else:
+            imagem, labels = dataset.format_batch_train_histogram(batch_id, numero_imagem, numero_imagem + 1)
         dataset.save_images(batch_id, numero_imagem, numero_imagem + 1)
         previsao, sigmoid = neuronio.function_sigmoid(imagem[0])
         resposta = labels[numero_imagem]
 
         # Interface gráfica que exibe a imagem
         window = tk.Tk()
-        if neuronio.numInputs == 1024:
-            window.title("Teste GrayScale")
-        else:
-            window.title("Teste RGB")
-        window.geometry("300x350")
+        window.title("Resultado")
+        window.geometry("350x400")
         window.configure(background='white')
 
         # Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
@@ -126,14 +127,23 @@ def testar(batch_id, numero_imagem, neuronio):
 
         # The Label widget is a standard Tkinter widget used to display a text or image on the screen.
         panel = tk.Label(window, image=img)
+        labelDados = tk.Label(text="", fg="black", bg="white")
+        if neuronio.numInputs == 1024:
+            labelDados = tk.Label(text="Gray - Batch "+str(batch_id)+" - Img "+str(numero_imagem), fg="black", bg="white")
+        elif neuronio.numInputs == 3072:
+            labelDados = tk.Label(text="RGB - Batch "+str(batch_id)+" - Img "+str(numero_imagem), fg="black", bg="white")
+        else:
+            labelDados = tk.Label(text="Hist - Batch " + str(batch_id) + " - Img " + str(numero_imagem), fg="black",bg="white")
         labelClasse = tk.Label(text="Imagem: " + LABEL_NAMES[label_original[numero_imagem]], fg="black", bg="white")
         labelPrevisao = tk.Label(text="Previsão: " + ALTER_LABEL[previsao], fg="black", bg="white")
         labelResposta = tk.Label(text="Resposta: " + ALTER_LABEL[resposta], fg="black", bg="white")
         fontSize = 17
+        labelDados.config(font=("Courier", fontSize))
         labelClasse.config(font=("Courier", fontSize))
         labelPrevisao.config(font=("Courier", fontSize))
         labelResposta.config(font=("Courier", fontSize))
 
+        labelDados.pack()
         panel.pack()
         labelClasse.pack()
         labelPrevisao.pack()
@@ -159,9 +169,14 @@ def preencherPesos(numInputs):
 if __name__ == '__main__':
     perceptronGray = Neuronio(1024, preencherPesos(1024), learningRate=0.01, threshold=0)
     perceptronRGB = Neuronio(3072, preencherPesos(3072), learningRate=0.01, threshold=0)
+    perceptronHist = Neuronio(256, preencherPesos(256), learningRate=1, threshold=0)
 
-    #treinar(batch_id=1, numFolds=10, repeticoes=1, neuronio=perceptronGray)
-    #treinar(batch_id=1, numFolds=10, repeticoes=1, neuronio=perceptronRGB)
+    for i in range(1,6):
+        #treinar(batch_id=i, numFolds=10, repeticoes=10, neuronio=perceptronGray)
+        treinar(batch_id=i, numFolds=10, repeticoes=1, neuronio=perceptronRGB)
+        #treinar(batch_id=i, numFolds=10, repeticoes=10, neuronio=perceptronHist)
+
 
     #testar(batch_id=1, numero_imagem=5, neuronio=perceptron)
     #testar(batch_id=1, numero_imagem=5, neuronio=perceptronRGB)
+    #testar(batch_id=1, numero_imagem=9999, neuronio=perceptronHist)

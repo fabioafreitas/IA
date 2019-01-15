@@ -1,10 +1,12 @@
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import numpy as np
 import pickle
 import cv2
 from os.path import isfile
 from builtins import str
-from PIL import Image
 from os import remove
+from PIL import Image
 
 
 # Classes originais do CIFAR-10
@@ -29,7 +31,7 @@ def load_batch(batch_id):
 
 # Abre uma imagem a partir de um batch escolhido.
 # recebe o batch a que a imagem pertence e o número desta imagem.
-def print_image_from_batch(batch_id, num_img):
+def show_image_from_batch(batch_id, num_img):
     if 0 <= num_img < 10000 and 1 <= batch_id < 6:
         features, labels = load_batch(batch_id)
         plt.axis('off')
@@ -61,6 +63,27 @@ def delete_images(batch_id, indexInicio, indexFim):
                 path = "batch" + str(batch_id) + "-img" + str(id) + ".png"
                 remove(path)
 
+# imprime o histograma de uma imagem da base de dados
+# recebe a base de dados a qual pertence a imagem
+# o número de imagem
+# obtive este código em:
+# http://helloraspberrypi.blogspot.com/2015/10/python-opencv-generate-histograms-of.html
+def plot_histogram(batch_id, numero_imagem):
+    if 0 <= numero_imagem < 10000 and 1 <= batch_id < 6:
+        save_images(batch_id, numero_imagem, numero_imagem + 1)
+        img = Image.open("batch" + str(batch_id) + "-img" + str(numero_imagem) + ".png")
+        imgArr = np.asarray(img)
+        plt.subplot(221), plt.imshow(img)
+        color = ('r', 'g', 'b')
+        for i, col in enumerate(color):
+            histr = cv2.calcHist([imgArr], [i], None, [256], [0, 256])
+            plt.subplot(222), plt.plot(histr, color=col)
+            plt.xlim([0, 256])
+
+        plt.xlim([0, 256])
+        plt.show()
+        delete_images(batch_id, numero_imagem, numero_imagem + 1)
+
 
 # utiliza a biblioteca OpenCV para converter imagens no formato .png
 # para o formato grayscale (Preto e Branco). Recebe o diretório da imagem
@@ -69,6 +92,22 @@ def convert_to_grayscale(imagem_arquivo):
         image_rgb = cv2.imread(imagem_arquivo)
         image_gray = cv2.cvtColor(image_rgb, cv2.COLOR_BGR2GRAY)
         return image_gray
+
+# imprime uma imagem em grayscale
+# recebe o batch da imagem
+# e o número da imagem
+def show_grayscale_image(batch_id, numero_imagem):
+    if 0 <= numero_imagem < 10000 and 1 <= batch_id < 6:
+        path = "batch" + str(batch_id) + "-img" + str(numero_imagem) + ".png"
+        save_images(batch_id, numero_imagem, numero_imagem+1)
+        file = Image.open(path)
+        zoom_file = file.resize((250, 250))
+        zoom_file.save(path)
+        gray = convert_to_grayscale(path)
+        cv2.imshow('Gray image', gray)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        delete_images(batch_id, numero_imagem, numero_imagem+1)
 
 
 # Neste projeto subdividimos as 10 classes do cifar-10 em apenas duas (Animal e Nao_Animal)
@@ -158,6 +197,43 @@ def format_arff_file_rgb(arquivo_arff, batch_id, numero_imagens):
         del features, labels, alter_label
 
 
+# formata o arquivo .arff para ser testado no WEKA
+# salva e converte as imagens para grayscale, em seguida as deleta
+# recebe o nome do arquivo a ser formatado, o batch a ser formatado e o número de imagens (de 1 a 10000)
+def format_arff_file_histogram(arquivo_arff, batch_id, numero_imagens):
+    if 0 <= numero_imagens <= 10000 and 1 <= batch_id < 6:
+        features, labels = load_batch(batch_id)
+
+        alter_label = alterar_labels(labels)
+        file = open(arquivo_arff, "w")
+
+        # escrevendo comantários e itens iniciais do arquivo .arff
+        file.writelines("% 1. Title: Database de objetos\n"
+                        "%\n"
+                        "% 2. Sources\n"
+                        "%      Cifar-10 Database\n"
+                        "%\n"
+                        "@relation imagens\n\n")
+
+        # escrevendo os atributos referentes ao vetor de características
+        for num in range(0, 256):
+            file.writelines("@attribute 'valueof" + str(num) + "' real\n")
+        file.writelines("@attribute 'class' {Animal, Nao_Animal}\n\n@data\n")
+
+        color = ('r', 'g', 'b')
+        # formata os pixels de cada imagem para ser escrito no arquivo
+        for num in range(0, numero_imagens):
+            histr = []
+            for i, col in enumerate(color):
+                histr = cv2.calcHist([features[num]], [i], None, [256], [0, 256])
+            for j in histr:
+                file.writelines(str(int(j[0])) + ",")
+            file.writelines(str(ALTER_LABEL[alter_label[num]]) + "\n")
+
+        file.close()
+        del features, labels, alter_label
+
+
 # formata um batch (1 a 5) para ser treinado pela rede neural
 # salva e converte as imagens para grayscale, em seguida as deleta
 # deixa o vetor de caracteristicas de saída no formato unidimensional
@@ -207,9 +283,38 @@ def format_batch_train_rgb(batch_id, indexInicio, indexFim):
         del features, labels
         return array_features, array_labels
 
+
+# formata um batch (1 a 5) para ser treinado pela rede neural
+# utiliza as imagens em rgb direto da base de dados. Não precisa converter para .png
+# deixa o vetor de caracteristicas de saída no formato unidimensional
+# recebe o batch a ser formatado e o intervalo de imagens a ser formatadas (valor entre 1 e 10000)
+def format_batch_train_histogram(batch_id, indexInicio, indexFim):
+    if 0 <= indexInicio < indexFim <= 10000 and 1 <= batch_id < 6:
+        features, labels = load_batch(batch_id)
+        array_labels = alterar_labels(labels)
+        array_features = []
+        color = ('r', 'g', 'b')
+        for a in range(int(indexInicio), int(indexFim)):
+            array = []
+            histr = []
+            for i, col in enumerate(color):
+                histr = cv2.calcHist([features[a]], [i], None, [256], [0, 256])
+            for j in histr:
+                array.append(j[0])
+            array_features.append(array)
+
+        del features, labels
+        return array_features, array_labels
+
+
 if __name__ == '__main__':
-    COUNT_IMG = 256
+    COUNT_IMG = 10000
+    #show_grayscale_image(1,0)
+    #show_image_from_batch(1,0)
+    #plot_histogram(1,0)
+    '''
     for i in range(1, 6):
         format_arff_file_rgb(arquivo_arff="rgb-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
         format_arff_file_grayscale(arquivo_arff="gray-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
-
+        format_arff_file_histogram(arquivo_arff="hist-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
+    '''
