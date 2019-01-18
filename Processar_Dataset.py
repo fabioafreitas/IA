@@ -116,9 +116,9 @@ def show_grayscale_image(batch_id, numero_imagem):
 def alterar_labels(labels):
     alter_labels = []
     for l in labels:
-        if 2 <= l <= 7:
+        if 2 <= l <= 7: # é animal
             alter_labels.append(0)
-        else:
+        else: # não animal
             alter_labels.append(1)
     return alter_labels
 
@@ -308,7 +308,8 @@ def format_batch_train_histogram(batch_id, indexInicio, indexFim):
 
 
 if __name__ == '__main__':
-    COUNT_IMG = 10000
+    COUNT_IMG = 50
+    #format_arff_file_histogram(arquivo_arff="hist-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
     #show_grayscale_image(1,0)
     #show_image_from_batch(1,0)
     #plot_histogram(1,0)
@@ -318,3 +319,5 @@ if __name__ == '__main__':
         format_arff_file_grayscale(arquivo_arff="gray-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
         format_arff_file_histogram(arquivo_arff="hist-batch" + str(i) + ".arff", batch_id=i, numero_imagens=COUNT_IMG)
     '''
+    save_images(1,0,1)
+    x = convert_to_grayscale("batch1-img0.png")

@@ -50,3 +50,25 @@ class Neuronio():
               "\tThreshold = "+str(self.threshold))
         for i in range(0, self.numInputs):
             print("Peso "+str(i)+" = "+str(self.arrayPesos[i]))
+
+
+    def salvar_pesos_file(self, file_name):
+        with open(file_name, 'w') as f:
+            for item in self.arrayPesos:
+                f.write("%s\n" % item)
+
+
+    def recuperar_pesos_file(self, file_name):
+        # define an empty list
+        places = []
+
+        # open file and read the content in a list
+        with open(file_name, 'r') as filehandle:
+            for line in filehandle:
+                # remove linebreak which is the last character of the string
+                currentPlace = line[:-1]
+
+                # add item to the list
+                places.append(float(currentPlace))
+
+        self.arrayPesos = places
